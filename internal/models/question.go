@@ -2,13 +2,10 @@ package models
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type Question struct {
-	gorm.Model
-	ID        int
-	Text      string
-	CreatedAt time.Time
+	ID        int       `json:"id"  gorm:"primaryKey;autoIncrement"`
+	Text      string    `json:"text"`
+	CreatedAt time.Time `json:"created_at"`
 }
