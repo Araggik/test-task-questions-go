@@ -1,12 +1,16 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
-	_ "github.com/lib/pq"
+	"github.com/Araggik/test-task-questions-go/internal/handlers"
+	"github.com/Araggik/test-task-questions-go/internal/repositories"
+	"github.com/Araggik/test-task-questions-go/internal/services"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 //psql -U postgres -d postgres -c 'SELECT * FROM questions'
@@ -27,43 +31,39 @@ func receiveConnStr() string {
 	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, name)
 }
 
+func checkError(err error, message string) {
+	if err != nil {
+		log.Fatal(message, err)
+		panic(err)
+	}
+}
+
 func main() {
 	connStr := receiveConnStr()
 
-	log.Println(connStr)
+	db, err := gorm.Open(postgres.Open(connStr))
 
-	db, err := sql.Open("postgres", connStr)
+	checkError(err, "Не удалось подключиться к БД")
 
-	if err == nil {
-		defer db.Close()
+	questionRepository := repositories.NewQuestionRepository(db)
+	answerRepository := repositories.NewAnswerRepository(db)
 
-		rows, err := db.Query("select * from questions")
+	questionService := services.NewQuestionService(questionRepository)
+	answerService := services.NewAnswerService(answerRepository)
 
-		if err == nil {
-			defer rows.Close()
+	questionHandler := handlers.NewQuestionHandler(questionService)
+	answerHandler := handlers.NewAnswerHandler(answerService)
 
-			questions := []question{}
+	http.HandleFunc("GET /questions/{id}", questionHandler.GetQuestion)
+	http.HandleFunc("GET /questions/", questionHandler.GetAllQuestion)
+	http.HandleFunc("POST /questions/", questionHandler.CreateQuestion)
+	http.HandleFunc("DELETE /questions/{id}", questionHandler.DeleteQuestion)
 
-			for rows.Next() {
-				q := question{}
-				err := rows.Scan(&q.id, &q.text, &q.createdAt)
-				if err == nil {
-					questions = append(questions, q)
+	http.HandleFunc("GET /answers/{id}", answerHandler.GetAnswer)
+	http.HandleFunc("POST /questions/{id}/answers/", answerHandler.CreateAnswer)
+	http.HandleFunc("DELETE /answers/{id}", answerHandler.DeleteAnswer)
 
-				} else {
-					log.Fatal(err)
-				}
-			}
+	err = http.ListenAndServe(":8080", nil)
 
-			for _, v := range questions {
-				log.Println(v)
-			}
-
-		} else {
-			log.Fatal(err)
-		}
-
-	} else {
-		log.Fatal(err)
-	}
+	checkError(err, "Не удалось развернуть сервер на порту 8080")
 }
