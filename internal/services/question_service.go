@@ -9,6 +9,7 @@ import (
 
 type QuestionService interface {
 	GetQuestion(id int) (*models.Question, error)
+	CreateQuestion(req models.CreateQuestionRequest) (*models.Question, error)
 }
 
 type questionService struct {
@@ -30,6 +31,16 @@ func (s *questionService) GetQuestion(id int) (*models.Question, error) {
 	if err == nil {
 		question, err = s.repo.GetByID(id)
 	}
+
+	return question, err
+}
+
+func (s *questionService) CreateQuestion(req models.CreateQuestionRequest) (*models.Question, error) {
+	question := &models.Question{
+		Text: req.Text,
+	}
+
+	err := s.repo.Create(question)
 
 	return question, err
 }

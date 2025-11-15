@@ -15,12 +15,6 @@ import (
 
 //psql -U postgres -d postgres -c 'SELECT * FROM questions'
 
-type question struct {
-	id        int
-	text      string
-	createdAt string
-}
-
 func receiveConnStr() string {
 	user := os.Getenv("DB_USER")
 	port := os.Getenv("DB_PORT")

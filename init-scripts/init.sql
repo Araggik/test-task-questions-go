@@ -14,5 +14,4 @@ CREATE TABLE answers (
 );
 
 INSERT INTO questions (id, txt, created_at)
-VALUES (1, 'Как запустить проект?', '2025-11-11 20:57:00');
 
