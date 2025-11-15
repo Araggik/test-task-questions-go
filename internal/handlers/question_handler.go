@@ -3,8 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
-	"strings"
 
 	"github.com/Araggik/test-task-questions-go/internal/models"
 	"github.com/Araggik/test-task-questions-go/internal/services"
@@ -19,11 +17,7 @@ func NewQuestionHandler(service services.QuestionService) *QuestionHandler {
 }
 
 func (h *QuestionHandler) GetQuestion(w http.ResponseWriter, r *http.Request) {
-	parts := strings.Split(r.URL.Path, "/")
-
-	rawId := parts[2]
-
-	id, err := strconv.Atoi(rawId)
+	id, err := receiveIdFromPath(r)
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -47,9 +41,7 @@ func (h *QuestionHandler) GetQuestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(result)
+	writeJSON(w, result)
 }
 
 func (h *QuestionHandler) CreateQuestion(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +49,7 @@ func (h *QuestionHandler) CreateQuestion(w http.ResponseWriter, r *http.Request)
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`Правильный формат json: {"text": "Текст вопроса"})`))
+		w.Write([]byte(`Правильный формат json: {"text": "Текст вопроса"}`))
 		return
 	}
 
@@ -77,9 +69,7 @@ func (h *QuestionHandler) CreateQuestion(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(result)
+	writeJSON(w, result)
 }
 
 func (h *QuestionHandler) GetAllQuestion(w http.ResponseWriter, r *http.Request) {
@@ -99,17 +89,11 @@ func (h *QuestionHandler) GetAllQuestion(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(result)
+	writeJSON(w, result)
 }
 
 func (h *QuestionHandler) DeleteQuestion(w http.ResponseWriter, r *http.Request) {
-	parts := strings.Split(r.URL.Path, "/")
-
-	rawId := parts[2]
-
-	id, err := strconv.Atoi(rawId)
+	id, err := receiveIdFromPath(r)
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

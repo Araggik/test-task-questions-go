@@ -49,7 +49,7 @@ func main() {
 	checkError(err, "Не удалось сменить диалект у goose")
 
 	err = goose.Up(sqlDB, ".")
-	checkError(err, "Не удалось прмиенить миграции")
+	checkError(err, "Не удалось применить миграции")
 
 	questionRepository := repositories.NewQuestionRepository(db)
 	answerRepository := repositories.NewAnswerRepository(db)
