@@ -55,7 +55,7 @@ func main() {
 	answerRepository := repositories.NewAnswerRepository(db)
 
 	questionService := services.NewQuestionService(questionRepository)
-	answerService := services.NewAnswerService(answerRepository)
+	answerService := services.NewAnswerService(answerRepository, questionRepository)
 
 	questionHandler := handlers.NewQuestionHandler(questionService)
 	answerHandler := handlers.NewAnswerHandler(answerService)
