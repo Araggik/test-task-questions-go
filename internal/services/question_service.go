@@ -15,11 +15,11 @@ type QuestionService interface {
 }
 
 type questionService struct {
-	repo repositories.QuestionRepository
+	questionRepo repositories.QuestionRepository
 }
 
-func NewQuestionService(repo repositories.QuestionRepository) QuestionService {
-	return &questionService{repo: repo}
+func NewQuestionService(questionRepo repositories.QuestionRepository) QuestionService {
+	return &questionService{questionRepo: questionRepo}
 }
 
 func (s *questionService) GetQuestion(id int) (*models.Question, error) {
@@ -31,7 +31,7 @@ func (s *questionService) GetQuestion(id int) (*models.Question, error) {
 	}
 
 	if err == nil {
-		question, err = s.repo.GetByID(id)
+		question, err = s.questionRepo.GetByID(id)
 	}
 
 	return question, err
@@ -42,13 +42,13 @@ func (s *questionService) CreateQuestion(req models.CreateQuestionRequest) (*mod
 		Text: req.Text,
 	}
 
-	err := s.repo.Create(question)
+	err := s.questionRepo.Create(question)
 
 	return question, err
 }
 
 func (s *questionService) GetAllQuestions() ([]models.Question, error) {
-	questions, err := s.repo.GetAll()
+	questions, err := s.questionRepo.GetAll()
 
 	return questions, err
 }
@@ -58,11 +58,17 @@ func (s *questionService) DeleteQuestion(id int) error {
 
 	if id <= 0 {
 		err = errors.New("id должен быть больше нуля")
+		return err
 	}
 
-	if err == nil {
-		err = s.repo.Delete(id)
+	//Проверяем, что есть вопрос с указанным id
+	_, err = s.questionRepo.GetByID(id)
+	if err != nil {
+		return err
 	}
+
+	//Каскадное удаление на уровне бд
+	err = s.questionRepo.Delete(id)
 
 	return err
 }
