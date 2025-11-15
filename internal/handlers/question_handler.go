@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -65,7 +64,7 @@ func (h *QuestionHandler) CreateQuestion(w http.ResponseWriter, r *http.Request)
 	question, err := h.service.CreateQuestion(req)
 
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -84,9 +83,47 @@ func (h *QuestionHandler) CreateQuestion(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *QuestionHandler) GetAllQuestion(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "GetAllQuestion")
+	questions, err := h.service.GetAllQuestions()
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	result, err := json.Marshal(questions)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(result)
 }
 
 func (h *QuestionHandler) DeleteQuestion(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "DeleteQuestion")
+	parts := strings.Split(r.URL.Path, "/")
+
+	rawId := parts[2]
+
+	id, err := strconv.Atoi(rawId)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Некорректный id в запросе"))
+		return
+	}
+
+	err = h.service.DeleteQuestion(id)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

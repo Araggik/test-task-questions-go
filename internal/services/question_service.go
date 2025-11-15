@@ -10,6 +10,8 @@ import (
 type QuestionService interface {
 	GetQuestion(id int) (*models.Question, error)
 	CreateQuestion(req models.CreateQuestionRequest) (*models.Question, error)
+	GetAllQuestions() ([]models.Question, error)
+	DeleteQuestion(id int) error
 }
 
 type questionService struct {
@@ -43,4 +45,24 @@ func (s *questionService) CreateQuestion(req models.CreateQuestionRequest) (*mod
 	err := s.repo.Create(question)
 
 	return question, err
+}
+
+func (s *questionService) GetAllQuestions() ([]models.Question, error) {
+	questions, err := s.repo.GetAll()
+
+	return questions, err
+}
+
+func (s *questionService) DeleteQuestion(id int) error {
+	var err error
+
+	if id <= 0 {
+		err = errors.New("id должен быть больше нуля")
+	}
+
+	if err == nil {
+		err = s.repo.Delete(id)
+	}
+
+	return err
 }
