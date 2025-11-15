@@ -9,6 +9,8 @@ import (
 	"github.com/Araggik/test-task-questions-go/internal/handlers"
 	"github.com/Araggik/test-task-questions-go/internal/repositories"
 	"github.com/Araggik/test-task-questions-go/internal/services"
+	"github.com/Araggik/test-task-questions-go/migrations"
+	"github.com/pressly/goose/v3"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -36,8 +38,18 @@ func main() {
 	connStr := receiveConnStr()
 
 	db, err := gorm.Open(postgres.Open(connStr))
-
 	checkError(err, "Не удалось подключиться к БД")
+
+	sqlDB, err := db.DB()
+	checkError(err, "Не удалось получить sqlDB")
+
+	goose.SetBaseFS(migrations.EmbedMigrations)
+
+	err = goose.SetDialect("postgres")
+	checkError(err, "Не удалось сменить диалект у goose")
+
+	err = goose.Up(sqlDB, ".")
+	checkError(err, "Не удалось прмиенить миграции")
 
 	questionRepository := repositories.NewQuestionRepository(db)
 	answerRepository := repositories.NewAnswerRepository(db)
@@ -58,6 +70,5 @@ func main() {
 	http.HandleFunc("DELETE /answers/{id}", answerHandler.DeleteAnswer)
 
 	err = http.ListenAndServe(":8080", nil)
-
 	checkError(err, "Не удалось развернуть сервер на порту 8080")
 }
